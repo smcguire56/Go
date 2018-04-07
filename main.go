@@ -19,6 +19,79 @@ type nfa struct {
 	accept  *state
 }
 
+// main function
+func main() {
+	finish := true
+	//https://tour.golang.org/flowcontrol/3
+	for finish {
+		// ask the user which option they want to use
+		fmt.Print("\n    Enter \n 1) Infix Expressions Conversion To NFA\n 2) PostFix Expressions Conversion To NFA \n 3) Exit\n")
+		var input int
+		fmt.Scanln(&input)
+
+		// https://tour.golang.org/flowcontrol/9
+		switch input {
+		case 1:
+			fmt.Println("option 1")
+			optionOne()
+		case 2:
+			fmt.Println("option 2")
+			optionTwo()
+		case 3:
+			fmt.Println("Exiting...")
+			os.Exit(1)
+		default:
+			fmt.Println("Please Enter a valid option")
+		}
+	}
+	fmt.Println()
+}
+
+// Infix expression conversion to NFA
+func optionOne() {
+	fmt.Print("Please Enter infix expression: ")
+	// test (a.(b|c))*
+	// error handling the read input
+	infixString, err := ReadFromInput()
+
+	if err != nil {
+		fmt.Println("Error: ", err.Error())
+		return
+	}
+
+	fmt.Println("infix", infixString)
+
+	// convert the infix string to postfix
+	postFix := IntoPost(infixString)
+	fmt.Println("postfix notation:", postFix)
+
+	fmt.Print("Enter a new String to test if it matches: ")
+	userTest, err := ReadFromInput()
+
+	if err != nil {
+		fmt.Println("Error: ", err.Error())
+		return
+	}
+
+	fmt.Println(userTest, " matches: ", postFix, " : ", pomatch(postFix, userTest))
+
+}
+
+// Postfix Expression conversion to NFA
+func optionTwo() {
+	fmt.Println("option 2 Doing")
+
+}
+
+// ReadFromInput reads in user input
+func ReadFromInput() (string, error) {
+
+	reader := bufio.NewReader(os.Stdin)
+	s, err := reader.ReadString('\n')
+
+	return strings.TrimSpace(s), err
+}
+
 //post Fix Regular Expression To Non Deterministic Finite Automata
 func poregtonfa(pofix string) *nfa {
 	// an array of pointers to nfa's that is empty
@@ -72,7 +145,20 @@ func poregtonfa(pofix string) *nfa {
 			frag.accept.edge2 = &accept
 
 			nfastack = append(nfastack, &nfa{initial: &initial, accept: &initial})
+		case '+':
+			// pop 1 fragment off nfastack
+			frag := nfastack[len(nfastack)-1]
 
+			//create a new state
+			accept := state{}
+			// new initial accept state
+			initial := state{edge1: frag.initial, edge2: &accept}
+
+			//The fragment edge has to point at the initial state
+			frag.accept.edge1 = &initial
+
+			//Push new fragment to nfastack
+			nfastack = append(nfastack, &nfa{initial: frag.initial, accept: &accept})
 		default:
 			// create new accepot, initial state
 			accept := state{}
@@ -85,7 +171,7 @@ func poregtonfa(pofix string) *nfa {
 
 	// return a single element as a result
 	if len(nfastack) != 1 {
-		fmt.Println("Error: ", len(nfastack), nfastack)
+		fmt.Println("more than 1 nfa found: ", len(nfastack), nfastack)
 	}
 	return nfastack[0]
 }
@@ -143,6 +229,7 @@ func pomatch(po string, s string) bool {
 
 // IntoPost return to postfix
 func IntoPost(infix string) string {
+	// mapping the specials in order of importance ()
 	specials := map[rune]int{'*': 10, '.': 9, '|': 8, '?': 7, '+': 6}
 	postfix := []rune{}
 	stack := []rune{}
@@ -172,67 +259,4 @@ func IntoPost(infix string) string {
 		stack = stack[:len(stack)-1]
 	}
 	return string(postfix)
-}
-
-func main() {
-
-	finish := true
-	//https://tour.golang.org/flowcontrol/3
-	for finish {
-		// ask the user which option they want to use
-		fmt.Print("\n    Enter \n 1) Infix Expressions Conversion To NFA\n 2) PostFix Expressions Conversion To NFA \n 3) Exit\n")
-		var input int
-		fmt.Scanln(&input)
-
-		// https://tour.golang.org/flowcontrol/9
-		switch input {
-		case 1:
-			fmt.Println("option 1")
-			optionOne()
-		case 2:
-			fmt.Println("option 2")
-			optionTwo()
-		case 3:
-			fmt.Println("option 3")
-			os.Exit(1)
-		default:
-			fmt.Println("Please Enter a valid option")
-		}
-	}
-	fmt.Println()
-}
-
-// Infix expression conversion to NFA
-func optionOne() {
-	fmt.Print("Please Enter infix expression: ")
-
-	// error handling the read input
-	infixString, err := ReadFromInput()
-
-	if err != nil {
-		fmt.Println("Error:", err.Error())
-		return
-	}
-
-	fmt.Println("infix", infixString)
-
-	// convert the infix string to postfix
-	newPost := IntoPost(infixString)
-	fmt.Println("postfix notation:", newPost)
-
-}
-
-// Postfix Expression conversion to NFA
-func optionTwo() {
-	fmt.Println("option 2 Doing")
-
-}
-
-// ReadFromInput reads in user input
-func ReadFromInput() (string, error) {
-
-	reader := bufio.NewReader(os.Stdin)
-	s, err := reader.ReadString('\n')
-
-	return strings.TrimSpace(s), err
 }
