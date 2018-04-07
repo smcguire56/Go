@@ -21,9 +21,9 @@ type nfa struct {
 
 // main function
 func main() {
-	finish := true
+	controller := true
 	//https://tour.golang.org/flowcontrol/3
-	for finish {
+	for controller {
 		// ask the user which option they want to use
 		fmt.Print("\n    Enter \n 1) Infix Expressions Conversion To NFA\n 2) PostFix Expressions Conversion To NFA \n 3) Exit\n")
 
@@ -36,14 +36,14 @@ func main() {
 		switch input {
 		case 1:
 			fmt.Println("option 1")
-			optionOne()
+			infixToNFA()
 		case 2:
 			fmt.Println("option 2")
-			optionTwo()
+			postFixToNFA()
 		case 3:
 			fmt.Println("Exiting...")
 			// exit the entire application
-			os.Exit(1)
+			controller = false
 		default:
 			fmt.Println("Please Enter a valid option")
 		}
@@ -52,7 +52,7 @@ func main() {
 }
 
 // Infix expression conversion to NFA
-func optionOne() {
+func infixToNFA() {
 	fmt.Print("Please Enter infix expression: ")
 	// test (a.(b|c))*
 	// error handling the read input
@@ -70,19 +70,19 @@ func optionOne() {
 	fmt.Println("postfix notation:", postFix)
 
 	fmt.Print("Enter a new String to test if it matches: ")
-	userTest, err := ReadFromInput()
+	newString, err := ReadFromInput()
 
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
 		return
 	}
 
-	fmt.Println(userTest, " matches: ", postFix, " : ", pomatch(postFix, userTest))
+	fmt.Println(newString, " matches: ", postFix, " : ", pomatch(postFix, newString))
 
 }
 
 // Postfix Expression conversion to NFA
-func optionTwo() {
+func postFixToNFA() {
 	fmt.Print("Enter postfix expression: ")
 
 	infixString, err := ReadFromInput()
@@ -93,14 +93,14 @@ func optionTwo() {
 	}
 
 	fmt.Print("Enter a new String to test if it matches: ")
-	userTest, err := ReadFromInput()
+	newString, err := ReadFromInput()
 
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
 		return
 	}
 
-	fmt.Println(userTest, " matches: ", userTest, " : ", pomatch(infixString, userTest))
+	fmt.Println(newString, " matches: ", newString, " : ", pomatch(infixString, newString))
 }
 
 // ReadFromInput reads in user input
@@ -120,7 +120,9 @@ func poregtonfa(pofix string) *nfa {
 	// looping through each character
 	for _, r := range pofix {
 		switch r {
+		//http://www.fon.hum.uva.nl/praat/manual/Regular_expressions_1__Special_characters.html
 		case '.':
+			// . the dot matches any character except the newline symbol.
 			// pops 2 fragments off the stack of fragments
 			frag2 := nfastack[len(nfastack)-1]
 			// up to but not including
@@ -136,6 +138,7 @@ func poregtonfa(pofix string) *nfa {
 			// push a new fragment to the stack
 			nfastack = append(nfastack, &nfa{initial: frag1.initial, accept: frag2.accept})
 		case '|':
+			// | the vertical pipe separates a series of alternatives.
 			// pops 2 fragments off the stack of fragments
 			frag2 := nfastack[len(nfastack)-1]
 			// up to but not including
@@ -154,6 +157,7 @@ func poregtonfa(pofix string) *nfa {
 			// push a new fragment to the stack
 			nfastack = append(nfastack, &nfa{initial: &initial, accept: &initial})
 		case '*':
+			// Zero or more
 			// pop 1 fragments off the stack of fragments
 			frag := nfastack[len(nfastack)-1]
 			// up to but not including
@@ -166,6 +170,7 @@ func poregtonfa(pofix string) *nfa {
 
 			nfastack = append(nfastack, &nfa{initial: &initial, accept: &initial})
 		case '+':
+			// + the plus sign is the match-one-or-more quantifier.
 			// pop 1 fragment off nfastack
 			frag := nfastack[len(nfastack)-1]
 			// create a new state
@@ -179,6 +184,7 @@ func poregtonfa(pofix string) *nfa {
 			//Push new fragment to nfastack
 			nfastack = append(nfastack, &nfa{initial: frag.initial, accept: &accept})
 		case '?':
+			// ? the question mark is the match-zero-or-one quantifier.
 			// pop 1 fragment off nfastack
 			frag := nfastack[len(nfastack)-1]
 			nfastack = nfastack[:len(nfastack)-1]
@@ -198,7 +204,7 @@ func poregtonfa(pofix string) *nfa {
 
 	// return a single element as a result
 	if len(nfastack) != 1 {
-		fmt.Println("more than 1 nfa found: ", len(nfastack), nfastack)
+		fmt.Println("more than 1 nfa found: length: ", len(nfastack), "nfa Stack: ", nfastack)
 	}
 	return nfastack[0]
 }
