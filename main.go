@@ -13,7 +13,7 @@ type state struct {
 	edge2  *state
 }
 
-// helper
+// helper state
 type nfa struct {
 	initial *state
 	accept  *state
@@ -26,10 +26,13 @@ func main() {
 	for finish {
 		// ask the user which option they want to use
 		fmt.Print("\n    Enter \n 1) Infix Expressions Conversion To NFA\n 2) PostFix Expressions Conversion To NFA \n 3) Exit\n")
+
+		// store the users input in a variable
 		var input int
 		fmt.Scanln(&input)
 
 		// https://tour.golang.org/flowcontrol/9
+		// enter switch statement to decide the next option
 		switch input {
 		case 1:
 			fmt.Println("option 1")
@@ -39,6 +42,7 @@ func main() {
 			optionTwo()
 		case 3:
 			fmt.Println("Exiting...")
+			// exit the entire application
 			os.Exit(1)
 		default:
 			fmt.Println("Please Enter a valid option")
@@ -79,8 +83,24 @@ func optionOne() {
 
 // Postfix Expression conversion to NFA
 func optionTwo() {
-	fmt.Println("option 2 Doing")
+	fmt.Print("Enter postfix expression: ")
 
+	infixString, err := ReadFromInput()
+
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		return
+	}
+
+	fmt.Print("Enter a new String to test if it matches: ")
+	userTest, err := ReadFromInput()
+
+	if err != nil {
+		fmt.Println("Error: ", err.Error())
+		return
+	}
+
+	fmt.Println(userTest, " matches: ", userTest, " : ", pomatch(infixString, userTest))
 }
 
 // ReadFromInput reads in user input
@@ -148,24 +168,31 @@ func poregtonfa(pofix string) *nfa {
 		case '+':
 			// pop 1 fragment off nfastack
 			frag := nfastack[len(nfastack)-1]
-
-			//create a new state
+			// create a new state
 			accept := state{}
 			// new initial accept state
 			initial := state{edge1: frag.initial, edge2: &accept}
 
-			//The fragment edge has to point at the initial state
+			// the fragment edge points to initial
 			frag.accept.edge1 = &initial
 
 			//Push new fragment to nfastack
 			nfastack = append(nfastack, &nfa{initial: frag.initial, accept: &accept})
+		case '?':
+			// pop 1 fragment off nfastack
+			frag := nfastack[len(nfastack)-1]
+			nfastack = nfastack[:len(nfastack)-1]
+
+			initial := state{edge1: frag.initial, edge2: frag.accept}
+
+			nfastack = append(nfastack, &nfa{initial: &initial, accept: frag.accept})
 		default:
 			// create new accepot, initial state
 			accept := state{}
 			initial := state{symbol: r, edge1: &accept}
 
 			// push new fragment to the stack
-			nfastack = append(nfastack, &nfa{initial: &initial, accept: &initial})
+			nfastack = append(nfastack, &nfa{initial: &initial, accept: &accept})
 		}
 	}
 
