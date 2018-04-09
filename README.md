@@ -40,7 +40,7 @@ Percent | task| Description
 25% |Documentation |Detailed descriptions and explanations.
 # References
 
-https://golang.org/
-https://tour.golang.org/flowcontrol/3
-https://tour.golang.org/flowcontrol/9
-http://www.fon.hum.uva.nl/praat/manual/Regular_expressions_1__Special_characters.html
+https://golang.org/ <br />
+https://tour.golang.org/flowcontrol/3 <br />
+https://tour.golang.org/flowcontrol/9 <br />
+http://www.fon.hum.uva.nl/praat/manual/Regular_expressions_1__Special_characters.html <br />
